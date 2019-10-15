@@ -425,6 +425,7 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
             contentResource.getScaffold(-20, contentType.scAlias).then(function(scaffold) {
                 // make sure it's an element type before allowing the user to create new ones
                 if (scaffold.isElement) {
+                    /*
                     // remove all tabs except the specified tab
                     var tabs = scaffold.variants[0].tabs;
                     var tab = _.find(tabs, function(tab) {
@@ -442,8 +443,7 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
                                     property.notSupportedMessage = "Property " + property.label + " uses editor " + property.editor + " which is not supported by Stacked Content.";
                                 }
                             });
-                    }
-
+                    } */
                     // Store the scaffold object
                     $scope.scaffolds.push(scaffold);
                 }
