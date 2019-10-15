@@ -248,6 +248,7 @@
   <ItemGroup>
     <Content Include="Web\UI\App_Plugins\StackedContent\css\stackedcontent.css" />
     <Content Include="Web\UI\App_Plugins\StackedContent\js\stackedcontent.js" />
+    <Content Include="Web\UI\App_Plugins\StackedContent\js\stackedcontent.old.js" />
     <Content Include="Web\UI\App_Plugins\StackedContent\views\stackedcontent.doctypepicker.html" />
     <Content Include="Web\UI\App_Plugins\StackedContent\views\stackedcontent.editor.html" />
     <Content Include="Web\UI\App_Plugins\StackedContent\views\stackedcontent.html" />

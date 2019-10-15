@@ -25,11 +25,8 @@ namespace Our.Umbraco.StackedContent.Config
 
         public class ContentType
         {
-            [JsonProperty("ncAlias")]
+            [JsonProperty("scAlias")]
             public string Alias { get; set; }
-
-            //[JsonProperty("ncTabAlias")]
-            //public string TabAlias { get; set; }
 
             [JsonProperty("nameTemplate")]
             public string Template { get; set; }
