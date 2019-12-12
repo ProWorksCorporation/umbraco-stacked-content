@@ -37,10 +37,13 @@ namespace Our.Umbraco.StackedContent.ValueConverters
         /// <inheritdoc />
         public override Type GetPropertyValueType(IPublishedPropertyType propertyType)
         {
-            var contentTypes = propertyType.DataType.ConfigurationAs<StackedContentConfiguration>().ContentTypes;
-            return contentTypes.Length > 1
-                ? typeof(IPublishedElement)
-                : ModelType.For(contentTypes[0].Alias);
+            var config = propertyType.DataType.ConfigurationAs<StackedContentConfiguration>();
+            var contentTypes = config.ContentTypes;
+            var elementType = contentTypes.Length > 1
+                    ? typeof(IPublishedElement)
+                    : ModelType.For(contentTypes[0].Alias);
+
+            return config.MaxItems.HasValue && config.MaxItems == 1 ? elementType : typeof(IEnumerable<>).MakeGenericType(ModelType.For(contentTypes[0].Alias));
         }
 
         /// <inheritdoc />

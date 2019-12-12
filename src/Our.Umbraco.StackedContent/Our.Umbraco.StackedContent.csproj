@@ -237,6 +237,7 @@
     <Compile Include="Config\StackedContentConfigurationEditor.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Config\StackedContentConfiguration.cs" />
+    <Compile Include="Extensions\HtmlHelperExtensions.cs" />
     <Compile Include="Helpers\StackedContentHelper.cs" />
     <Compile Include="ValueConverters\StackedContentManyValueConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -263,11 +264,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>IF %25ComputerName%25 == DESKTOP-ESFKU58 (
+    <PostBuildEvent>IF %25ComputerName%25 == LAPTOP-OJ2HSJOF (
   IF NOT "$(SolutionDir)" == "*Undefined*" (
-    xcopy /s /y "$(TargetPath)" "C:\Users\Matt\Storage\Sandbox\Umbraco\UmbracoCms.7.7.6\bin\"
-    xcopy /s /y "$(TargetDir)$(ProjectName).pdb" "C:\Users\Matt\Storage\Sandbox\Umbraco\UmbracoCms.7.7.6\bin\"
-    xcopy /s /y "$(ProjectDir)Web\UI\*.*" "C:\Users\Matt\Storage\Sandbox\Umbraco\UmbracoCms.7.7.6\"
+    xcopy /s /y "$(TargetPath)" "C:\Temp\v8-For-StackedContent\UmbracoCms.8.4.0\bin\"
+    xcopy /s /y "$(TargetDir)$(ProjectName).pdb" "C:\Temp\v8-For-StackedContent\UmbracoCms.8.4.0\bin\"
+    xcopy /s /y "$(ProjectDir)Web\UI\*.*" "C:\Temp\v8-For-StackedContent\UmbracoCms.8.4.0\"
   )
 )</PostBuildEvent>
   </PropertyGroup>

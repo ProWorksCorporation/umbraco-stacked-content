@@ -40,14 +40,12 @@
             </div>
 
             <div class="stack__add-bar stack__add-bar--bottom" ng-if="model.config.singleItemMode !== '1'">
-                <a ng-click="addContent($event, model.value.length)" class="stack__add-button" ng-if="canAdd()" title="Add"><i class="icon icon-add"></i></a>
-                <a ng-click="pasteContent($event, model.value.length)" class="stack__paste-button" ng-if="canPaste()" title="Paste"><i class="icon icon-paste-in"></i></a>
+                <a ng-click="openNodeTypePicker($event, model.value.length)" class="stack__add-button" ng-if="canAdd()" title="Add"><i class="icon icon-add"></i></a>
             </div>
 
         </div>
 
-        <inner-content-overlay ng-if="overlayConfig.show" config="overlayConfig">
-        </inner-content-overlay>
+        <umb-overlay ng-if="overlayMenu.show" position="target" size="overlayMenu.size" view="overlayMenu.view" model="overlayMenu"> </umb-overlay>
 
     </div>
 

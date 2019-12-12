@@ -5,7 +5,7 @@
 
     function($scope, scResources) {
 
-        $scope.add = function() {
+        $scope.add = function () {
             $scope.model.value.push({
                 // As per PR #4, all stored content type aliases must be prefixed "sc" for easier recognition.
                 // For good measure we'll also prefix the tab alias "sc"
@@ -13,15 +13,15 @@
                 scTabAlias: "",
                 nameTemplate: ""
             });
-        }
+        };
 
-        $scope.canAdd = function() {
+        $scope.canAdd = function () {
             return !$scope.model.docTypes || !$scope.model.value || $scope.model.value.length < $scope.model.docTypes.length;
-        }
+        };
 
-        $scope.remove = function(index) {
+        $scope.remove = function (index) {
             $scope.model.value.splice(index, 1);
-        }
+        };
 
         $scope.sortableOptions = {
             axis: "y",
@@ -78,16 +78,16 @@
             });
         });
 
-        $scope.selectableDocTypesFor = function(config) {
+        $scope.selectableDocTypesFor = function (config) {
             // return all doctypes that are:
             // 1. either already selected for this config, or
             // 2. not selected in any other config
-            return _.filter($scope.model.docTypes, function(docType) {
-                return docType.alias === config.scAlias || !_.find($scope.model.value, function(c) {
+            return _.filter($scope.model.docTypes, function (docType) {
+                return docType.alias === config.scAlias || !_.find($scope.model.value, function (c) {
                     return docType.alias === c.scAlias;
                 });
             });
-        }
+        };
 
         if (!$scope.model.value) {
             $scope.model.value = [];
@@ -96,12 +96,27 @@
     }
 ]);
 
+angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.EditorController", [
+
+    "$scope",
+    "Our.Umbraco.StackedContent.Resources",
+
+    function ($scope, scResources) {
+        $scope.submit = function () {
+            if ($scope.model.submit) $scope.model.submit($scope.model);
+        };
+
+        $scope.close = function () {
+            if ($scope.model.close) $scope.model.close();
+        };
+    }
+]);
+
 angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.StackedContentPropertyEditorController", [
 
     "$scope",
     "$interpolate",
     "$filter",
-    "$timeout",
     "contentResource",
     "localizationService",
     "iconHelper",
@@ -109,7 +124,7 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
     "eventsService",
     "overlayService",
 
-    function($scope, $interpolate, $filter, $timeout, contentResource, localizationService, iconHelper, clipboardService, eventsService, overlayService, $routeParams, editorState) {
+    function($scope, $interpolate, $filter, contentResource, localizationService, iconHelper, clipboardService, eventsService, overlayService) {
 
         var contentTypeAliases = [];
         _.each($scope.model.config.contentTypes, function(contentType) {
@@ -117,7 +132,7 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
         });
 
         _.each($scope.model.config.contentTypes, function(contentType) {
-            contentType.nameExp = !!contentType.nameTemplate ?
+            contentType.nameExp = contentType.nameTemplate ?
                 $interpolate(contentType.nameTemplate) :
                 undefined;
         });
@@ -153,7 +168,11 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
             }
         };
 
-        $scope.addNode = function(alias) {
+        $scope.canAdd = function () {
+            return $scope.nodes.length < $scope.maxItems && !$scope.model.singleMode;
+        };
+
+        $scope.addNode = function (alias) {
             var scaffold = $scope.getScaffold(alias);
 
             var newNode = createNode(scaffold, null);
@@ -162,7 +181,7 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
             $scope.setDirty();
         };
 
-        $scope.openNodeTypePicker = function($event) {
+        $scope.openNodeTypePicker = function ($event) {
             if ($scope.nodes.length >= $scope.maxItems) {
                 return;
             }
@@ -174,11 +193,6 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
                 orderBy: "$index",
                 view: "itempicker",
                 event: $event,
-                clickPasteItem: function(item) {
-                    $scope.pasteFromClipboard(item.data);
-                    $scope.overlayMenu.show = false;
-                    $scope.overlayMenu = null;
-                },
                 submit: function(model) {
                     if (model && model.selectedItem) {
                         $scope.addNode(model.selectedItem.alias);
@@ -207,28 +221,9 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
             }
 
             $scope.overlayMenu.size = $scope.overlayMenu.availableItems.length > 6 ? "medium" : "small";
+            $scope.overlayMenu.title = $scope.labels.content_createEmpty;
 
-            $scope.overlayMenu.pasteItems = [];
-            var availableNodesForPaste = clipboardService.retriveDataOfType("elementType", contentTypeAliases);
-            _.each(availableNodesForPaste, function(node) {
-                $scope.overlayMenu.pasteItems.push({
-                    alias: node.contentTypeAlias,
-                    name: node.name, //contentTypeName
-                    data: node,
-                    icon: iconHelper.convertFromLegacyIcon(node.icon)
-                });
-            });
-
-            $scope.overlayMenu.title = $scope.overlayMenu.pasteItems.length > 0 ? $scope.labels.grid_addElement : $scope.labels.content_createEmpty;
-
-            $scope.overlayMenu.clickClearPaste = function($event) {
-                $event.stopPropagation();
-                $event.preventDefault();
-                clipboardService.clearEntriesOfType("elementType", contentTypeAliases);
-                $scope.overlayMenu.pasteItems = []; // This dialog is not connected via the clipboardService events, so we need to update manually.
-            };
-
-            if ($scope.overlayMenu.availableItems.length === 1 && $scope.overlayMenu.pasteItems.length === 0) {
+            if ($scope.overlayMenu.availableItems.length === 1) {
                 // only one scaffold type - no need to display the picker
                 $scope.addNode($scope.scaffolds[0].contentTypeAlias);
                 return;
@@ -287,14 +282,14 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
 
                 var contentType = $scope.getContentTypeConfig($scope.model.value[idx].scContentTypeAlias);
 
-                if (contentType != null) {
+                if (contentType) {
                     // first try getting a name using the configured label template
                     if (contentType.nameExp) {
                         // Run the expression against the stored dictionary value, NOT the node object
                         var item = $scope.model.value[idx];
 
                         // Add a temporary index property
-                        item["$index"] = (idx + 1);
+                        item["$index"] = idx + 1;
 
                         var newName = contentType.nameExp(item);
                         if (newName && (newName = $.trim(newName))) {
@@ -328,10 +323,11 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
             return name;
         };
 
-        $scope.getIcon = function(idx) {
+        $scope.getIcon = function (idx) {
             var scaffold = $scope.getScaffold($scope.model.value[idx].scContentTypeAlias);
             return scaffold && scaffold.icon ? iconHelper.convertFromLegacyIcon(scaffold.icon) : "icon-folder";
-        }
+        };
+
         $scope.sortableOptions = {
             axis: "y",
             cursor: "move",
@@ -340,7 +336,7 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
             opacity: 0.7,
             tolerance: "pointer",
             scroll: true,
-            start: function(ev, ui) {
+            start: function() {
                 updateModel();
                 // Yea, yea, we shouldn't modify the dom, sue me
                 $("#umb-stacked-content--" + $scope.model.id + " .umb-rte textarea").each(function() {
@@ -351,10 +347,10 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
                     $scope.sorting = true;
                 });
             },
-            update: function(ev, ui) {
+            update: function() {
                 $scope.setDirty();
             },
-            stop: function(ev, ui) {
+            stop: function() {
                 $("#umb-stacked-content--" + $scope.model.id + " .umb-rte textarea").each(function() {
                     tinymce.execCommand("mceAddEditor", true, $(this).attr("id"));
                     $(this).css("visibility", "visible");
@@ -366,31 +362,31 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
             }
         };
 
-        $scope.getScaffold = function(alias) {
-            return _.find($scope.scaffolds, function(scaffold) {
+        $scope.getScaffold = function (alias) {
+            return _.find($scope.scaffolds, function (scaffold) {
                 return scaffold.contentTypeAlias === alias;
             });
-        }
+        };
 
-        $scope.getContentTypeConfig = function(alias) {
-            return _.find($scope.model.config.contentTypes, function(contentType) {
+        $scope.getContentTypeConfig = function (alias) {
+            return _.find($scope.model.config.contentTypes, function (contentType) {
                 return contentType.scAlias === alias;
             });
-        }
+        };
 
         $scope.showCopy = clipboardService.isSupported();
 
         $scope.showPaste = false;
 
-        $scope.clickCopy = function($event, node) {
+        $scope.clickCopy = function ($event, node) {
 
             syncCurrentNode();
 
             clipboardService.copy("elementType", node.contentTypeAlias, node);
             $event.stopPropagation();
-        }
+        };
 
-        $scope.pasteFromClipboard = function(newNode) {
+        $scope.pasteFromClipboard = function (newNode) {
 
             if (newNode === undefined) {
                 return;
@@ -404,19 +400,13 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
             //updateModel();// done by setting current node...
 
             $scope.currentNode = newNode;
-        }
+        };
 
         function checkAbilityToPasteContent() {
             $scope.showPaste = clipboardService.hasEntriesOfType("elementType", contentTypeAliases);
         }
 
         eventsService.on("clipboardService.storageUpdate", checkAbilityToPasteContent);
-
-        var notSupported = [
-            "Umbraco.Tags",
-            "Umbraco.UploadField",
-            "Umbraco.ImageCropper"
-        ];
 
         // Initialize
         var scaffoldsLoaded = 0;
@@ -450,22 +440,22 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
 
                 scaffoldsLoaded++;
                 initIfAllScaffoldsHaveLoaded();
-            }, function(error) {
+            }, function() {
                 scaffoldsLoaded++;
                 initIfAllScaffoldsHaveLoaded();
             });
         });
 
-        var initIfAllScaffoldsHaveLoaded = function() {
+        var initIfAllScaffoldsHaveLoaded = function () {
             // Initialize when all scaffolds have loaded
             if ($scope.model.config.contentTypes.length === scaffoldsLoaded) {
                 // Because we're loading the scaffolds async one at a time, we need to
                 // sort them explicitly according to the sort order defined by the data type.
                 contentTypeAliases = [];
-                _.each($scope.model.config.contentTypes, function(contentType) {
+                _.each($scope.model.config.contentTypes, function (contentType) {
                     contentTypeAliases.push(contentType.scAlias);
                 });
-                $scope.scaffolds = $filter("orderBy")($scope.scaffolds, function(s) {
+                $scope.scaffolds = $filter("orderBy")($scope.scaffolds, function (s) {
                     return contentTypeAliases.indexOf(s.contentTypeAlias);
                 });
 
@@ -474,7 +464,7 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
                     for (var i = 0; i < $scope.model.value.length; i++) {
                         var item = $scope.model.value[i];
                         var scaffold = $scope.getScaffold(item.scContentTypeAlias);
-                        if (scaffold == null) {
+                        if (!scaffold) {
                             // No such scaffold - the content type might have been deleted. We need to skip it.
                             continue;
                         }
@@ -484,13 +474,13 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
 
                 // Enforce min items
                 if ($scope.nodes.length < $scope.model.config.minItems) {
-                    for (var i = $scope.nodes.length; i < $scope.model.config.minItems; i++) {
+                    for (var j = $scope.nodes.length; j < $scope.model.config.minItems; j++) {
                         $scope.addNode($scope.scaffolds[0].contentTypeAlias);
                     }
                 }
 
                 // If there is only one item, set it as current node
-                if ($scope.singleMode || ($scope.nodes.length === 1 && $scope.maxItems === 1)) {
+                if ($scope.singleMode || $scope.nodes.length === 1 && $scope.maxItems === 1) {
                     $scope.currentNode = $scope.nodes[0];
                 }
 
@@ -498,7 +488,7 @@ angular.module("umbraco").controller("Our.Umbraco.StackedContent.Controllers.Sta
 
                 checkAbilityToPasteContent();
             }
-        }
+        };
 
         function createNode(scaffold, fromScEntry) {
             var node = angular.copy(scaffold);
@@ -660,9 +650,9 @@ angular.module("umbraco.filters").filter("scNodeName", function(editorState, ent
 });
 
 angular.module('umbraco.resources').factory('Our.Umbraco.StackedContent.Resources',
-    function($q, $http, umbRequestHelper) {
+    function ($http, umbRequestHelper) {
         return {
-            getContentTypes: function() {
+            getContentTypes: function () {
                 var url = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/backoffice/InnerContent/InnerContentApi/GetContentTypes";
                 return umbRequestHelper.resourcePromise(
                     $http.get(url),
@@ -670,4 +660,4 @@ angular.module('umbraco.resources').factory('Our.Umbraco.StackedContent.Resource
                 );
             }
         };
-    })
+    });
